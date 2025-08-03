@@ -1,0 +1,16 @@
+.gridContainer {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.divider {
+    grid-column: 1 / -1
+}
+
+@media (max-width: 1000px) {
+    .gridContainer {
+        grid-template-columns: 1fr;
+    }
+}

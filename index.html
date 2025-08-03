@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pixels</title>
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+
+    <script defer id="opencv" src="./opencv.js"></script>
+    <script>
+      window.opencvLoaded = new Promise((resolve) => {
+        // https://emscripten.org/docs/api_reference/module.html#Module.onRuntimeInitialized
+        window.Module = {
+          onRuntimeInitialized() {
+            console.log("OpenCV Loaded!")
+            resolve()
+          }
+        }
+      })
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
