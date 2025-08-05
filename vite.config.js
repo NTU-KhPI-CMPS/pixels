@@ -13,19 +13,20 @@ export default defineConfig({
       manifest: {
         name: 'Pixels',
         short_name: 'Pixels',
-        description: 'Pixels application',
-        theme_color: '#2A31C5',
+        theme_color: '#1434CB',
         background_color: '#F5F5F5',
         icons: [
           {
-            src: 'vite-192x192.png',
-            sizes: '192x192',
+            src: 'logo-512x512.png',
             type: 'image/png',
+            sizes: '512x512',
+            purpose: 'any',
           },
           {
-            src: 'vite-512x512.png',
-            sizes: '512x512',
+            src: 'logo-512x512.png',
             type: 'image/png',
+            sizes: '512x512',
+            purpose: 'maskable',
           },
         ],
       },
