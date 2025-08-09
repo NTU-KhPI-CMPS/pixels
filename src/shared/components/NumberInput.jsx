@@ -1,12 +1,12 @@
 import { useId, useState } from 'react'
 
-import { Input, InputContainer, Label } from '@visa/nova-react'
+import { Input, InputContainer, InputMessage, Label } from '@visa/nova-react'
 
 export default function NumberInput(
   {
     title,
     min = 0,
-    max = Number.MAX_SAFE_INTEGER,
+    max = 1_000_000,
     step = 1,
     initialValue = min,
     ...other
@@ -38,7 +38,7 @@ export default function NumberInput(
   return (
     <div className="full-width">
       <Label htmlFor={id}>
-        {`${title} (${min} - ${max})`}
+        {title}
       </Label>
 
       <InputContainer>
@@ -49,11 +49,16 @@ export default function NumberInput(
           max={max}
           step={step}
           value={value}
+          aria-describedby={`${id}-message`}
           onChange={event => setValue(event.target.value)}
           onBlur={blurred}
           {...other}
         />
       </InputContainer>
+
+      <InputMessage id={`${id}-message`}>
+        {`${min} - ${max}`}
+      </InputMessage>
     </div>
   )
 }

@@ -6,5 +6,5 @@ export const defaultSettings = {
   kernelWidth: 6,
   kernelHeight: 6,
   minArea: 0,
-  maxArea: Number.MAX_SAFE_INTEGER,
+  maxArea: 1_000_000,
 }

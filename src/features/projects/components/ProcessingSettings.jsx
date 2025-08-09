@@ -34,7 +34,7 @@ export default function ProcessingSettings() {
       <AccordionPanel>
         <form onSubmit={onSubmit}>
           <Utility vFlex vFlexCol vGap={10}>
-            <Utility vFlex vFlexRow vGap={10}>
+            <Utility className="flex-container">
               <NumberInput
                 title="Threshold Block Size"
                 name="blockSize"
@@ -52,7 +52,7 @@ export default function ProcessingSettings() {
               />
             </Utility>
 
-            <Utility vFlex vFlexRow vGap={10}>
+            <Utility className="flex-container">
               <NumberInput
                 title="Canny Threshold 1"
                 name="canny1"
@@ -69,22 +69,22 @@ export default function ProcessingSettings() {
               />
             </Utility>
 
-            <Utility vFlex vFlexRow vGap={10}>
+            <Utility className="flex-container">
               <NumberInput
-                title="Morphology Kernel Width"
+                title="Closing Kernel Width"
                 name="kernelWidth"
                 max={255}
                 initialValue={settings.kernelWidth}
               />
               <NumberInput
-                title="Morphology Kernel Height"
+                title="Closing Kernel Height"
                 name="kernelHeight"
                 max={255}
                 initialValue={settings.kernelHeight}
               />
             </Utility>
 
-            <Utility vFlex vFlexRow vGap={10}>
+            <Utility className="flex-container">
               <NumberInput title="Minimum Area" name="minArea" initialValue={settings.minArea} />
               <NumberInput title="Maximum Area" name="maxArea" initialValue={settings.maxArea} />
             </Utility>
