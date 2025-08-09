@@ -7,6 +7,7 @@ export const storageMiddleware = createListenerMiddleware()
 storageMiddleware.startListening({
   matcher: isAnyOf(
     projectActions.projectCreated,
+    projectActions.settingsChanged,
     projectActions.fileAdded,
     projectActions.fileDeleted,
   ),

@@ -1,11 +1,19 @@
-import { configureStore } from '@reduxjs/toolkit'
+import { configureStore, createListenerMiddleware, isAnyOf } from '@reduxjs/toolkit'
 
 import { storageMiddleware } from '../shared/middlewares/storageMiddleware.js'
 import { getAllProjects } from '../shared/utils/indexedDBUtils.js'
 
-import { initialState } from './projectSlice.js'
-import projectSlice from './projectSlice.js'
-import processingSlice from './processingSlice.js'
+import projectSlice, { initialState, projectActions } from './projectSlice.js'
+import processingSlice, { resultsOpened } from './processingSlice.js'
+
+const middleware = createListenerMiddleware()
+middleware.startListening({
+  matcher: isAnyOf(
+    projectActions.settingsChanged,
+  ),
+  effect: async (action, api) =>
+    await api.dispatch(resultsOpened()),
+})
 
 export const getPreloadedStore = async () => {
   const preloadedState = await getAllProjects()
@@ -21,6 +29,7 @@ export const getPreloadedStore = async () => {
     middleware: getDefaultMiddleware => (
       getDefaultMiddleware().concat(
         storageMiddleware.middleware,
+        middleware.middleware,
       )
     ),
   })

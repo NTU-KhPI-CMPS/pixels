@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Button, Utility } from '@visa/nova-react'
 import { GenericArrowForwardTiny, GenericCheckmarkTiny, GenericDeleteTiny } from '@visa/nova-icons-react'
 
+import { defaultSettings } from '../../../config/index.js'
 import { projectActions, selectProjects } from '../../../store/projectSlice.js'
 import { deleteProjectImages } from '../../../shared/utils/indexedDBUtils.js'
 import { useSelectedProject } from '../../../shared/hooks/useSelectedProject.js'
@@ -74,6 +75,7 @@ export default function ProjectPage() {
         id: Math.random().toString(16).slice(2),
         name: value,
         imagesCount: 0,
+        settings: defaultSettings,
       }
       dispatch(projectActions.projectCreated(project))
     }

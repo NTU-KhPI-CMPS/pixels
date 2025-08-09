@@ -1,21 +1,21 @@
 import { getImage } from './indexedDBUtils.js'
 
-export async function getResult(id) {
+export async function getResult(id, settings) {
   await window.opencvLoaded
 
   const images = []
   const stats = []
   const inputData = await getMatFromDb(id)
 
-  const binaryData = await binarize(inputData.mat)
+  const binaryData = await binarize(inputData.mat, settings)
   images.push(binaryData.url)
   stats.push({ ...binaryData.stats, name: inputData.name })
 
-  const cannyData = await canny(binaryData.binaryMat)
+  const cannyData = await canny(binaryData.binaryMat, settings)
   binaryData.binaryMat.delete()
   images.push(cannyData.url)
 
-  const contoursData = await contours(cannyData.closedMat)
+  const contoursData = await contours(cannyData.closedMat, settings)
   cannyData.closedMat.delete()
   stats.push({ ...contoursData.stats, name: inputData.name })
 
@@ -27,12 +27,12 @@ export async function getResult(id) {
   return [images, stats]
 }
 
-async function binarize(input) {
+async function binarize(input, { blockSize, c }) {
   let gray = new cv.Mat()
   cv.cvtColor(input, gray, cv.COLOR_RGBA2GRAY)
 
   let binaryMat = new cv.Mat()
-  cv.adaptiveThreshold(gray, binaryMat, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 49, 12)
+  cv.adaptiveThreshold(gray, binaryMat, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, blockSize, c)
   gray.delete()
 
   const stats = await getBinaryStats(input, binaryMat)
@@ -41,12 +41,12 @@ async function binarize(input) {
   return { url, stats, binaryMat }
 }
 
-async function canny(input) {
+async function canny(input, { canny1, canny2, kernelWidth, kernelHeight }) {
   let canny = new cv.Mat()
-  cv.Canny(input, canny, 25, 50)
+  cv.Canny(input, canny, canny1, canny2)
 
   let closedMat = new cv.Mat()
-  let kernel = cv.Mat.ones(6, 6, cv.CV_8U)
+  let kernel = cv.Mat.ones(kernelWidth, kernelHeight, cv.CV_8U)
   cv.morphologyEx(canny, closedMat, cv.MORPH_CLOSE, kernel)
   kernel.delete()
   canny.delete()
@@ -55,14 +55,15 @@ async function canny(input) {
   return { url, closedMat }
 }
 
-async function contours(input) {
+async function contours(input, { minArea, maxArea }) {
   let contours = new cv.MatVector()
   cv.findContours(input, contours, new cv.Mat(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_TC89_KCOS)
 
   let filteredContours = new cv.MatVector()
   for (let i = 0; i < contours.size(); ++i) {
-    let contour = contours.get(i)
-    if (cv.contourArea(contour) > 1) {
+    const contour = contours.get(i)
+    const area = cv.contourArea(contour)
+    if (area >= minArea && area <= maxArea) {
       filteredContours.push_back(contour)
     }
   }

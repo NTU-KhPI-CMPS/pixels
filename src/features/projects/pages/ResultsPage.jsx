@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { resultsOpened, selectResults } from '../../../store/processingSlice.js'
 
 import ImageView from '../../../shared/components/ImageView.jsx'
+import ProcessingSettings from '../components/ProcessingSettings.jsx'
 
 export default function ResultsPage() {
 
@@ -19,6 +20,9 @@ export default function ResultsPage() {
   }, [dispatch])
 
   return (
-    <ImageView results imageIdsOrUrls={Object.values(results).flatMap(arr => arr)} />
+    <>
+      <ProcessingSettings />
+      <ImageView results imageIdsOrUrls={Object.values(results).flatMap(arr => arr)} />
+    </>
   )
 }

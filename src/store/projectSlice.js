@@ -21,6 +21,10 @@ export const projectSlice = createSlice({
         state.selectedProject = null
       }
     },
+    settingsChanged: (state, { payload }) => {
+      const project = state.projects.find(project => project.id === state.selectedProject)
+      project.settings = payload
+    },
     fileAdded: (state, { payload }) => {
       const project = state.projects.find(project => project.id === state.selectedProject)
       const files = project.files ?? []

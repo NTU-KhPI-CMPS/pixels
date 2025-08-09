@@ -6,12 +6,12 @@ import { revokeResults } from '../shared/utils/urlUtils.js'
 export const resultsOpened = createAsyncThunk(
   'projects/resultsOpened',
   async (payload, thunkAPI) => {
-
     const projectState = thunkAPI.getState().project
 
     const selectedProject = projectState.projects
       .find(project => project.id === projectState.selectedProject)
     const files = selectedProject.files
+    const settings = selectedProject.settings
 
     const resultData = {}
     const statsData = {}
@@ -21,7 +21,7 @@ export const resultsOpened = createAsyncThunk(
         throw thunkAPI.rejectWithValue({})
       }
 
-      const processingResult = await getResult(file)
+      const processingResult = await getResult(file, settings)
       resultData[file] = processingResult[0]
       statsData[file] = processingResult[1]
     }
