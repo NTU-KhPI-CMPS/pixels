@@ -2,7 +2,6 @@ import { createSlice } from '@reduxjs/toolkit'
 
 export const initialState = {
   projects: [],
-  selectedProject: null,
 }
 
 export const projectSlice = createSlice({
@@ -10,30 +9,28 @@ export const projectSlice = createSlice({
   initialState,
   reducers: {
     projectSelected: (state, { payload }) => {
-      state.selectedProject = payload
+      const project = state.projects.find(project => project.id === payload)
+      project.isSelected = true
     },
     projectCreated: (state, { payload }) => {
       state.projects.push(payload)
     },
     projectDeleted: (state, { payload }) => {
       state.projects = state.projects.filter(project => project.id !== payload)
-      if (state.selectedProject === payload) {
-        state.selectedProject = null
-      }
     },
     settingsChanged: (state, { payload }) => {
-      const project = state.projects.find(project => project.id === state.selectedProject)
+      const project = state.projects.find(project => project.isSelected)
       project.settings = payload
     },
     fileAdded: (state, { payload }) => {
-      const project = state.projects.find(project => project.id === state.selectedProject)
+      const project = state.projects.find(project => project.isSelected)
       const files = project.files ?? []
       files.push(payload)
       project.files = files
       project.imagesCount++
     },
     fileDeleted: (state, { payload }) => {
-      const project = state.projects.find(project => project.id === state.selectedProject)
+      const project = state.projects.find(project => project.isSelected)
       let files = project.files ?? []
       files = files.filter(item => item !== payload)
       project.files = files
@@ -44,7 +41,7 @@ export const projectSlice = createSlice({
 
 export const projectActions = projectSlice.actions
 
-export const selectSelectedProject = state => state.project.selectedProject
+export const selectSelectedProject = state => state.project.projects.find(project => project.isSelected)
 export const selectProjects = state => state.project.projects
 
 export default projectSlice.reducer

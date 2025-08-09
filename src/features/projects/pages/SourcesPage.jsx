@@ -1,11 +1,10 @@
 import { useRef } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 
 import { Button } from '@visa/nova-react'
 
-import { projectActions } from '../../../store/projectSlice.js'
+import { projectActions, selectSelectedProject } from '../../../store/projectSlice.js'
 import { storeImage } from '../../../shared/utils/indexedDBUtils.js'
-import { useSelectedProject } from '../../../shared/hooks/useSelectedProject.js'
 
 import ImageView from '../../../shared/components/ImageView.jsx'
 
@@ -13,7 +12,7 @@ export default function SourcesPage() {
   const inputRef = useRef(null)
   const dispatch = useDispatch()
 
-  const currentProject = useSelectedProject()
+  const currentProject = useSelector(selectSelectedProject)
 
   async function fileSelected(event) {
     if (event.target.files && event.target.files.length > 0) {

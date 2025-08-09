@@ -6,9 +6,8 @@ import { Button, Utility } from '@visa/nova-react'
 import { GenericArrowForwardTiny, GenericCheckmarkTiny, GenericDeleteTiny } from '@visa/nova-icons-react'
 
 import { defaultSettings } from '../../../config/index.js'
-import { projectActions, selectProjects } from '../../../store/projectSlice.js'
+import { projectActions, selectProjects, selectSelectedProject } from '../../../store/projectSlice.js'
 import { deleteProjectImages } from '../../../shared/utils/indexedDBUtils.js'
-import { useSelectedProject } from '../../../shared/hooks/useSelectedProject.js'
 
 import Grid from '../../../shared/components/Grid.jsx'
 import NewProjectPopup from '../popups/NewProject.jsx'
@@ -20,7 +19,7 @@ export default function ProjectPage() {
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const projects = useSelector(selectProjects)
-  const selectedProject = useSelectedProject()
+  const selectedProject = useSelector(selectSelectedProject)
 
   const tableSchema = [
     {
@@ -42,12 +41,13 @@ export default function ProjectPage() {
       <Utility vFlex vFlexGrow vGap={10}>
         <Button
           colorScheme="secondary"
+          title="Select this project"
           disabled={selectedProject?.id === row.id}
           onClick={() => projectSelected(row.id)}
         >
           {selectedProject?.id === row.id ? <GenericCheckmarkTiny /> : <GenericArrowForwardTiny />}
         </Button>
-        <Button onClick={() => deleteProject(row.id)}>
+        <Button title="Delete this project" onClick={() => deleteProject(row.id)}>
           <GenericDeleteTiny />
         </Button>
       </Utility>

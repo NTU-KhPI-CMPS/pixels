@@ -51,7 +51,7 @@ export default function Image({ results, alt, image }) {
   return (
     <div className={styles.container}>
       {!results && (
-        <Button className={styles.closeButton} onClick={deleteImageClicked}>
+        <Button title="Delete this image" className={styles.closeButton} onClick={deleteImageClicked}>
           <GenericDeleteTiny />
         </Button>
       )}

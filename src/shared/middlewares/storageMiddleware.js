@@ -6,6 +6,7 @@ import { deleteProject, storeProjects } from '../utils/indexedDBUtils.js'
 export const storageMiddleware = createListenerMiddleware()
 storageMiddleware.startListening({
   matcher: isAnyOf(
+    projectActions.projectSelected,
     projectActions.projectCreated,
     projectActions.settingsChanged,
     projectActions.fileAdded,

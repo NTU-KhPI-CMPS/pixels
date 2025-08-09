@@ -8,8 +8,7 @@ export const resultsOpened = createAsyncThunk(
   async (payload, thunkAPI) => {
     const projectState = thunkAPI.getState().project
 
-    const selectedProject = projectState.projects
-      .find(project => project.id === projectState.selectedProject)
+    const selectedProject = projectState.projects.find(project => project.isSelected)
     const files = selectedProject.files
     const settings = selectedProject.settings
 

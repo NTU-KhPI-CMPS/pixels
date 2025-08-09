@@ -1,5 +1,6 @@
 import { useId, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 
 import { GenericCloseTiny, GenericMenuLow } from '@visa/nova-icons-react'
 import {
@@ -15,16 +16,15 @@ import {
   UtilityFragment,
 } from '@visa/nova-react'
 
-import { useSelectedProject } from '../../shared/hooks/useSelectedProject.js'
+import { selectSelectedProject } from '../../store/projectSlice.js'
 
 export const Navigation = () => {
   const id = useId()
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const navigate = useNavigate()
   const location = useLocation()
 
-  const selectedProject = useSelectedProject()
+  const selectedProject = useSelector(selectSelectedProject)
 
   const onToggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen)
@@ -36,8 +36,8 @@ export const Navigation = () => {
         <Button
           buttonSize="large"
           colorScheme="tertiary"
-          aria-current={location.pathname === '/projects' ? 'page' : undefined}
-          element={<a onClick={() => navigate('/projects')}>Projects</a>}
+          aria-current={location.pathname === '/' ? 'page' : undefined}
+          element={<a href="/">Projects</a>}
         />
       </Tab>
       {selectedProject && (
@@ -46,7 +46,7 @@ export const Navigation = () => {
             buttonSize="large"
             colorScheme="tertiary"
             aria-current={location.pathname === '/sources' ? 'page' : undefined}
-            element={<a onClick={() => navigate('/sources')}>Sources</a>}
+            element={<a href="/sources">Sources</a>}
           />
         </Tab>
       )}
@@ -57,7 +57,7 @@ export const Navigation = () => {
               buttonSize="large"
               colorScheme="tertiary"
               aria-current={location.pathname === '/processing' ? 'page' : undefined}
-              element={<a onClick={() => navigate('/processing')}>Processing</a>}
+              element={<a href="/processing">Processing</a>}
             />
           </Tab>
           <Tab>
@@ -65,7 +65,7 @@ export const Navigation = () => {
               buttonSize="large"
               colorScheme="tertiary"
               aria-current={location.pathname === '/results' ? 'page' : undefined}
-              element={<a onClick={() => navigate('/results')}>Results</a>}
+              element={<a href="/results">Results</a>}
             />
           </Tab>
         </>

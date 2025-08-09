@@ -1,7 +1,7 @@
 import React, { lazy } from 'react'
 import { createRoot } from 'react-dom/client'
 
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 
 import App from './App.jsx'
 import StoreProvider from './shared/providers/StoreProvider.jsx'
@@ -21,7 +21,7 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       {
-        path: 'projects',
+        index: true,
         element: <ProjectPage />,
       },
       {
@@ -35,6 +35,10 @@ const router = createBrowserRouter([
       {
         path: 'results',
         element: <ResultsPage />,
+      },
+      {
+        path: '*',
+        element: <Navigate to="/" replace />,
       },
     ],
   },

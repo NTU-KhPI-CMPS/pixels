@@ -1,16 +1,15 @@
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 
 import { Accordion, AccordionHeading, AccordionPanel, AccordionToggleIcon, Button, Utility } from '@visa/nova-react'
 
-import { projectActions } from '../../../store/projectSlice.js'
-import { useSelectedProject } from '../../../shared/hooks/useSelectedProject.js'
+import { projectActions, selectSelectedProject } from '../../../store/projectSlice.js'
 
 import NumberInput from '../../../shared/components/NumberInput.jsx'
 
 export default function ProcessingSettings() {
 
   const dispatch = useDispatch()
-  const settings = useSelectedProject().settings
+  const settings = useSelector(selectSelectedProject).settings
 
   function onSubmit(event) {
     event.preventDefault()
