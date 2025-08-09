@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { Typography } from '@visa/nova-react'
+import { Chart } from 'react-google-charts'
 
 import { resultsOpened, selectStats } from '../../../store/processingSlice.js'
 
@@ -29,6 +30,13 @@ const contourTableSchema = [
   { name: 'Max Perimeter', key: 'maxPerimeter' },
 ]
 
+const options = {
+  legend: { position: 'top' },
+  histogram: { maxNumBuckets: 10 },
+  vAxis: { scaleType: 'mirrorLog' },
+  backgroundColor: '#F5F5F5',
+}
+
 export default function ResultsPage() {
 
   const dispatch = useDispatch()
@@ -40,6 +48,27 @@ export default function ResultsPage() {
   const contoursData = useMemo(() => {
     return Object.values(stats).map(data => data[1])
   }, [stats])
+
+  const areasHistogramData = useMemo(() => {
+    return getHistogramData(contoursData, 'areas')
+  }, [contoursData])
+
+  function getHistogramData(data, fieldName) {
+    if (!data || data.length === 0) {
+      return
+    }
+
+    const maxLength = Math.max(...data.map(image => image[fieldName].length))
+    const header = data.map(image => image.name)
+    const result = [header]
+
+    for (let i = 0; i < maxLength; i++) {
+      const row = data.map(c => c[fieldName][i] ?? null)
+      result.push(row)
+    }
+
+    return result
+  }
 
   useEffect(() => {
     const dispatchPromise = dispatch(resultsOpened())
@@ -66,6 +95,17 @@ export default function ResultsPage() {
         schema={contourTableSchema}
         data={contoursData}
       />
+      <br />
+      <Typography tag="h2" variant="headline-2">
+        Contours area distribution
+      </Typography>
+      {areasHistogramData && (
+        <Chart
+          chartType="Histogram"
+          data={areasHistogramData}
+          options={options}
+        />
+      )}
     </>
   )
 }

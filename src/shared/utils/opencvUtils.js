@@ -100,6 +100,7 @@ async function getBinaryStats(original, binary) {
 
 async function getContoursStats(original, contours) {
   const count = contours.size()
+  const areas = []
 
   let totalArea = 0
   let minArea = Number.MAX_VALUE
@@ -112,6 +113,7 @@ async function getContoursStats(original, contours) {
   for (let i = 0; i < contours.size(); ++i) {
     const contour = contours.get(i)
     const area = cv.contourArea(contour)
+    areas.push(area)
     totalArea += area
     minArea = Math.min(minArea, area)
     maxArea = Math.max(maxArea, area)
@@ -129,7 +131,7 @@ async function getContoursStats(original, contours) {
   const percentage = (totalArea / imageArea) * 100.0
 
   return {
-    count, percentage, totalArea, minArea, averageArea, maxArea,
+    count, areas, percentage, totalArea, minArea, averageArea, maxArea,
     totalPerimeter, minPerimeter, averagePerimeter, maxPerimeter,
   }
 }
