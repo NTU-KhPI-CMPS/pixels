@@ -12,8 +12,8 @@ import './styles/index.css'
 
 const ProjectPage = lazy(() => import('./features/projects/pages/ProjectPage.jsx'))
 const SourcesPage = lazy(() => import('./features/projects/pages/SourcesPage.jsx'))
-const ResultsPage = lazy(() => import('./features/projects/pages/ResultsPage.jsx'))
-const StatisticsPage = lazy(() => import('./features/projects/pages/StatisticsPage.jsx'))
+const ProcessingPage = lazy(() => import('./features/projects/pages/./ProcessingPage'))
+const ResultsPage = lazy(() => import('./features/projects/pages/./ResultsPage'))
 
 const router = createBrowserRouter([
   {
@@ -29,12 +29,12 @@ const router = createBrowserRouter([
         element: <SourcesPage />,
       },
       {
-        path: 'results',
-        element: <ResultsPage />,
+        path: 'processing',
+        element: <ProcessingPage />,
       },
       {
-        path: 'statistics',
-        element: <StatisticsPage />,
+        path: 'results',
+        element: <ResultsPage />,
       },
     ],
   },

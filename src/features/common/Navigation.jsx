@@ -56,16 +56,16 @@ export const Navigation = () => {
             <Button
               buttonSize="large"
               colorScheme="tertiary"
-              aria-current={location.pathname === '/results' ? 'page' : undefined}
-              element={<a onClick={() => navigate('/results')}>Results</a>}
+              aria-current={location.pathname === '/processing' ? 'page' : undefined}
+              element={<a onClick={() => navigate('/processing')}>Processing</a>}
             />
           </Tab>
           <Tab>
             <Button
               buttonSize="large"
               colorScheme="tertiary"
-              aria-current={location.pathname === '/statistics' ? 'page' : undefined}
-              element={<a onClick={() => navigate('/statistics')}>Statistics</a>}
+              aria-current={location.pathname === '/results' ? 'page' : undefined}
+              element={<a onClick={() => navigate('/results')}>Results</a>}
             />
           </Tab>
         </>
