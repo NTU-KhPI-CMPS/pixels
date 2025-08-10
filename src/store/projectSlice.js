@@ -9,8 +9,9 @@ export const projectSlice = createSlice({
   initialState,
   reducers: {
     projectSelected: (state, { payload }) => {
-      const project = state.projects.find(project => project.id === payload)
-      project.isSelected = true
+      state.projects.forEach((project) => {
+        project.isSelected = project.id === payload
+      })
     },
     projectCreated: (state, { payload }) => {
       state.projects.push(payload)

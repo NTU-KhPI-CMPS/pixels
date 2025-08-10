@@ -12,8 +12,8 @@ import './styles/index.css'
 
 const ProjectPage = lazy(() => import('./features/projects/pages/ProjectPage.jsx'))
 const SourcesPage = lazy(() => import('./features/projects/pages/SourcesPage.jsx'))
-const ProcessingPage = lazy(() => import('./features/projects/pages/./ProcessingPage'))
-const ResultsPage = lazy(() => import('./features/projects/pages/./ResultsPage'))
+const ProcessingPage = lazy(() => import('./features/projects/pages/ProcessingPage'))
+const ResultsPage = lazy(() => import('./features/projects/pages/ResultsPage'))
 
 const router = createBrowserRouter([
   {
