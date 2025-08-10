@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
-import { Typography } from '@visa/nova-react'
+import { Accordion, AccordionHeading, AccordionPanel, AccordionToggleIcon, Utility, Typography } from '@visa/nova-react'
 import { Chart } from 'react-google-charts'
 
 import { useHistogram } from '../../../shared/hooks/useHistogram.js'
@@ -32,7 +32,6 @@ const contourTableSchema = [
 ]
 
 const options = {
-  backgroundColor: '#F5F5F5',
   legend: { position: 'top' },
   vAxis: { scaleType: 'mirrorLog' },
   hAxis: { gridlines: { count: 8 } },
@@ -50,9 +49,14 @@ export default function ResultsPage() {
   const contoursData = useMemo(() => {
     return Object.values(stats).map(data => data[1])
   }, [stats])
+  const angleData = useMemo(() => {
+    return Object.values(stats).map(data => data[2])
+  }, [stats])
 
   const areaHistogramData = useHistogram(contoursData, 'areas', 'minArea', 'maxArea')
   const perimeterHistogramData = useHistogram(contoursData, 'perimeters', 'minPerimeter', 'maxPerimeter')
+  const angleHistogramData = useHistogram(angleData, 'angles', 'minAngle', 'maxAngle')
+  const ratioHistogramData = useHistogram(angleData, 'ratios', 'minRatio', 'maxRatio')
 
   useEffect(() => {
     const dispatchPromise = dispatch(resultsOpened())
@@ -63,7 +67,7 @@ export default function ResultsPage() {
   }, [dispatch])
 
   return (
-    <>
+    <Utility vFlex vFlexCol vGap={10}>
       <Typography tag="h2" variant="headline-2">
         Binarization statistics
       </Typography>
@@ -71,7 +75,7 @@ export default function ResultsPage() {
         schema={binaryTableSchema}
         data={binarizationData}
       />
-      <br />
+
       <Typography tag="h2" variant="headline-2">
         Contours statistics
       </Typography>
@@ -79,28 +83,49 @@ export default function ResultsPage() {
         schema={contourTableSchema}
         data={contoursData}
       />
-      <br />
+
       <Typography tag="h2" variant="headline-2">
-        Contours area distribution
+        Distributions
       </Typography>
-      {areaHistogramData?.length && (
-        <Chart
-          chartType="ColumnChart"
-          data={areaHistogramData}
-          options={options}
-        />
-      )}
-      <br />
-      <Typography tag="h2" variant="headline-2">
-        Contours perimeter distribution
-      </Typography>
-      {perimeterHistogramData?.length && (
-        <Chart
-          chartType="ColumnChart"
-          data={perimeterHistogramData}
-          options={options}
-        />
-      )}
-    </>
+      <Accordion>
+        <AccordionHeading buttonSize="large" colorScheme="secondary">
+          <AccordionToggleIcon />
+          Area and Perimeter Distribution
+        </AccordionHeading>
+        <AccordionPanel className="no-horizontal-padding">
+          <Chart
+            chartType="ColumnChart"
+            data={areaHistogramData}
+            options={{ ...options, title: 'Area Distribution' }}
+          />
+          <br />
+          <Chart
+            chartType="ColumnChart"
+            data={perimeterHistogramData}
+            options={{ ...options, title: 'Perimeter Distribution' }}
+          />
+        </AccordionPanel>
+      </Accordion>
+
+      <Accordion>
+        <AccordionHeading buttonSize="large" colorScheme="secondary">
+          <AccordionToggleIcon />
+          Aspect Ratio and Angle Distribution
+        </AccordionHeading>
+        <AccordionPanel className="no-horizontal-padding">
+          <Chart
+            chartType="ColumnChart"
+            data={ratioHistogramData}
+            options={{ ...options, title: 'Aspect Ratio Distribution' }}
+          />
+          <br />
+          <Chart
+            chartType="ColumnChart"
+            data={angleHistogramData}
+            options={{ ...options, title: 'Angle Distribution' }}
+          />
+        </AccordionPanel>
+      </Accordion>
+    </Utility>
   )
 }

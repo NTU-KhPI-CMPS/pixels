@@ -7,59 +7,60 @@ export async function getResult(id, settings) {
   const stats = []
   const inputData = await getMatFromDb(id)
 
-  const binaryData = await binarize(inputData.mat, settings)
-  images.push(binaryData.url)
+  const binaryData = await binarize(inputData.inputMat, settings)
+  images.push(binaryData.binaryUrl)
   stats.push({ ...binaryData.stats, name: inputData.name })
 
   const cannyData = await canny(binaryData.binaryMat, settings)
   binaryData.binaryMat.delete()
-  images.push(cannyData.url)
+  images.push(cannyData.cannyUrl)
 
-  const contoursData = await contours(cannyData.closedMat, settings)
-  cannyData.closedMat.delete()
+  const contoursData = await contours(inputData.inputMat, cannyData.cannyMat, settings)
+  cannyData.cannyMat.delete()
+  stats.push({ ...contoursData.stats, name: inputData.name })
 
-  const enhancedContourStats = await enhanceContoursStats(inputData.mat, contoursData.stats)
-  stats.push({ ...enhancedContourStats, name: inputData.name })
-
-  const drawnContours = await drawContours(inputData.mat, contoursData.filteredContours)
+  const angleData = await angles(contoursData.contoursMat, contoursData.filteredContours)
+  contoursData.contoursMat.delete()
   contoursData.filteredContours.delete()
-  images.push(drawnContours.url)
 
-  inputData.mat.delete()
+  stats.push({ ...angleData.stats, name: inputData.name })
+  images.push(angleData.anglesUrls)
+
+  angleData.anglesMat.delete()
+  inputData.inputMat.delete()
+
   return [images, stats]
 }
 
-async function binarize(input, { blockSize, c }) {
-  let gray = new cv.Mat()
-  cv.cvtColor(input, gray, cv.COLOR_RGBA2GRAY)
+async function binarize(inputMat, { blockSize, c }) {
+  let grayMat = new cv.Mat()
+  cv.cvtColor(inputMat, grayMat, cv.COLOR_RGBA2GRAY)
 
   let binaryMat = new cv.Mat()
-  cv.adaptiveThreshold(gray, binaryMat, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, blockSize, c)
-  gray.delete()
+  cv.adaptiveThreshold(grayMat, binaryMat, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, blockSize, c)
+  grayMat.delete()
 
-  const stats = await getBinaryStats(input, binaryMat)
-  const url = await getUrlFromMat(binaryMat)
+  const stats = await getBinaryStats(binaryMat)
+  const binaryUrl = await getUrlFromMat(binaryMat)
 
-  return { url, stats, binaryMat }
+  return { stats, binaryUrl, binaryMat }
 }
 
-async function canny(input, { canny1, canny2, kernelWidth, kernelHeight }) {
-  let canny = new cv.Mat()
-  cv.Canny(input, canny, canny1, canny2)
+async function canny(binaryMat, { canny1, canny2, kernelWidth, kernelHeight }) {
+  let cannyMat = new cv.Mat()
+  cv.Canny(binaryMat, cannyMat, canny1, canny2)
 
-  let closedMat = new cv.Mat()
   let kernel = cv.Mat.ones(kernelWidth, kernelHeight, cv.CV_8U)
-  cv.morphologyEx(canny, closedMat, cv.MORPH_CLOSE, kernel)
+  cv.morphologyEx(cannyMat, cannyMat, cv.MORPH_CLOSE, kernel)
   kernel.delete()
-  canny.delete()
 
-  const url = await getUrlFromMat(closedMat)
-  return { url, closedMat }
+  const cannyUrl = await getUrlFromMat(cannyMat)
+  return { cannyUrl, cannyMat }
 }
 
-async function contours(input, { minArea, maxArea }) {
+async function contours(inputMat, edgesMat, { minArea, maxArea }) {
   let contours = new cv.MatVector()
-  cv.findContours(input, contours, new cv.Mat(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_TC89_KCOS)
+  cv.findContours(edgesMat, contours, new cv.Mat(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_TC89_KCOS)
 
   let filteredContours = new cv.MatVector()
   let stats = null
@@ -75,21 +76,13 @@ async function contours(input, { minArea, maxArea }) {
   }
   contours.delete()
 
-  return { filteredContours, stats }
+  stats = await addContourStats(inputMat, stats)
+  const contoursMat = await drawContours(inputMat, filteredContours)
+  return { stats, filteredContours, contoursMat }
 }
 
-async function drawContours(input, contours) {
-  let dstMat = input.clone()
-  cv.drawContours(dstMat, contours, -1, new cv.Scalar(255, 0, 0, 255), -1)
-
-  const url = await getUrlFromMat(dstMat)
-  dstMat.delete()
-
-  return { url }
-}
-
-async function getBinaryStats(original, binary) {
-  const size = original.size()
+async function getBinaryStats(binary) {
+  const size = binary.size()
   const totalPixels = size.width * size.height
   const lightPixels = cv.countNonZero(binary)
   const darkPixels = totalPixels - lightPixels
@@ -133,10 +126,10 @@ async function processContourForStats(area, perimeter, stats) {
   return stats
 }
 
-async function enhanceContoursStats(originalMat, stats) {
+async function addContourStats(inputMat, stats) {
   const averageArea = stats.totalArea / stats.count
   const averagePerimeter = stats.totalPerimeter / stats.count
-  const size = originalMat.size()
+  const size = inputMat.size()
   const imageArea = size.width * size.height
   const percentage = (stats.totalArea / imageArea) * 100.0
 
@@ -146,6 +139,74 @@ async function enhanceContoursStats(originalMat, stats) {
   return {
     ...stats,
     averageArea, averagePerimeter, percentage,
+  }
+}
+
+async function drawContours(matToDraw, contours) {
+  let contoursMat = matToDraw.clone()
+  cv.drawContours(contoursMat, contours, -1, new cv.Scalar(255, 0, 0, 255), -1)
+  return contoursMat
+}
+
+async function angles(contoursMat, contours) {
+  let anglesMat = contoursMat.clone()
+  let stats = null
+
+  for (let i = 0; i < contours.size(); i++) {
+    const contour = contours.get(i)
+    const rotatedRect = cv.minAreaRect(contour)
+
+    stats = await processRotatedRectForStats(anglesMat, rotatedRect, stats)
+  }
+
+  stats.angles.sort((e1, e2) => e1 - e2)
+  stats.ratios.sort((e1, e2) => e1 - e2)
+
+  const anglesUrls = await getUrlFromMat(anglesMat)
+  return { stats, anglesMat, anglesUrls }
+}
+
+async function processRotatedRectForStats(matToDraw, rotatedRect, stats) {
+  stats = stats ?? {
+    angles: [],
+    minAngle: Number.MAX_VALUE,
+    maxAngle: -Number.MAX_VALUE,
+
+    ratios: [],
+    minRatio: Number.MAX_VALUE,
+    maxRatio: -Number.MAX_VALUE,
+  }
+
+  const rawAngle = rotatedRect.angle
+  const { width, height } = rotatedRect.size
+
+  const longestSide = Math.max(width, height)
+  const shortestSide = Math.min(width, height)
+
+  if (shortestSide === 0) {
+    return stats
+  }
+
+  await drawRotatedRect(matToDraw, rotatedRect)
+
+  const angle = (width < height) ? rawAngle + 90 : rawAngle
+  const ratio = longestSide / shortestSide
+
+  stats.angles.push(angle)
+  stats.ratios.push(ratio)
+
+  stats.minAngle = Math.min(stats.minAngle, angle)
+  stats.maxAngle = Math.max(stats.maxAngle, angle)
+  stats.minRatio = Math.min(stats.minRatio, ratio)
+  stats.maxRatio = Math.max(stats.maxRatio, ratio)
+
+  return stats
+}
+
+async function drawRotatedRect(matToDraw, rotatedRect) {
+  let vertices = cv.RotatedRect.points(rotatedRect)
+  for (let i = 0; i < 4; i++) {
+    cv.line(matToDraw, vertices[i], vertices[(i + 1) % 4], new cv.Scalar(0, 255, 0, 255), 2, cv.LINE_AA, 0)
   }
 }
 
@@ -160,7 +221,7 @@ async function getMatFromDb(id) {
   })
 
   URL.revokeObjectURL(imageUrl)
-  return { mat: cv.imread(image), name: imageData.blob.name }
+  return { inputMat: cv.imread(image), name: imageData.blob.name }
 }
 
 async function getUrlFromMat(mat) {

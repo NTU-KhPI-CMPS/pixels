@@ -23,8 +23,8 @@ function generateBuckets(data, minFieldName, maxFieldName) {
   const areaHistogram = Array.from({ length: 10 }, () => Array(data.length + 1).fill(0))
 
   for (let i = 0; i < 10; i++) {
-    const start = Math.round(min + i * step)
-    areaHistogram[i][0] = i === 9 ? max : Math.round(start + step)
+    const start = min + i * step
+    areaHistogram[i][0] = i === 9 ? max : start + step
   }
 
   return areaHistogram
