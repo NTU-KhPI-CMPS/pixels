@@ -17,7 +17,9 @@ export async function getResult(id, settings) {
 
   const contoursData = await contours(cannyData.closedMat, settings)
   cannyData.closedMat.delete()
-  stats.push({ ...contoursData.stats, name: inputData.name })
+
+  const enhancedContourStats = await enhanceContoursStats(inputData.mat, contoursData.stats)
+  stats.push({ ...enhancedContourStats, name: inputData.name })
 
   const drawnContours = await drawContours(inputData.mat, contoursData.filteredContours)
   contoursData.filteredContours.delete()
@@ -60,17 +62,20 @@ async function contours(input, { minArea, maxArea }) {
   cv.findContours(input, contours, new cv.Mat(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_TC89_KCOS)
 
   let filteredContours = new cv.MatVector()
+  let stats = null
   for (let i = 0; i < contours.size(); ++i) {
     const contour = contours.get(i)
     const area = cv.contourArea(contour)
+    const perimeter = cv.arcLength(contour, true)
+
     if (area >= minArea && area <= maxArea) {
       filteredContours.push_back(contour)
+      stats = await processContourForStats(area, perimeter, stats)
     }
   }
   contours.delete()
 
-  const stats = await getContoursStats(input, filteredContours)
-  return { stats, filteredContours }
+  return { filteredContours, stats }
 }
 
 async function drawContours(input, contours) {
@@ -98,41 +103,49 @@ async function getBinaryStats(original, binary) {
   }
 }
 
-async function getContoursStats(original, contours) {
-  const count = contours.size()
-  const areas = []
+async function processContourForStats(area, perimeter, stats) {
+  stats = stats ?? {
+    count: 0,
 
-  let totalArea = 0
-  let minArea = Number.MAX_VALUE
-  let maxArea = -Number.MAX_VALUE
+    areas: [],
+    totalArea: 0,
+    minArea: Number.MAX_VALUE,
+    maxArea: -Number.MAX_VALUE,
 
-  let totalPerimeter = 0
-  let minPerimeter = Number.MAX_VALUE
-  let maxPerimeter = -Number.MAX_VALUE
-
-  for (let i = 0; i < contours.size(); ++i) {
-    const contour = contours.get(i)
-    const area = cv.contourArea(contour)
-    areas.push(area)
-    totalArea += area
-    minArea = Math.min(minArea, area)
-    maxArea = Math.max(maxArea, area)
-
-    const perimeter = cv.arcLength(contour, true)
-    totalPerimeter += perimeter
-    minPerimeter = Math.min(minPerimeter, perimeter)
-    maxPerimeter = Math.max(maxPerimeter, perimeter)
+    perimeters: [],
+    totalPerimeter: 0,
+    minPerimeter: Number.MAX_VALUE,
+    maxPerimeter: -Number.MAX_VALUE,
   }
 
-  const averageArea = totalArea / count
-  const averagePerimeter = totalPerimeter / count
-  const size = original.size()
+  stats.count++
+
+  stats.areas.push(area)
+  stats.totalArea += area
+  stats.minArea = Math.min(stats.minArea, area)
+  stats.maxArea = Math.max(stats.maxArea, area)
+
+  stats.perimeters.push(perimeter)
+  stats.totalPerimeter += perimeter
+  stats.minPerimeter = Math.min(stats.minPerimeter, perimeter)
+  stats.maxPerimeter = Math.max(stats.maxPerimeter, perimeter)
+
+  return stats
+}
+
+async function enhanceContoursStats(originalMat, stats) {
+  const averageArea = stats.totalArea / stats.count
+  const averagePerimeter = stats.totalPerimeter / stats.count
+  const size = originalMat.size()
   const imageArea = size.width * size.height
-  const percentage = (totalArea / imageArea) * 100.0
+  const percentage = (stats.totalArea / imageArea) * 100.0
+
+  stats.areas.sort((e1, e2) => e1 - e2)
+  stats.perimeters.sort((e1, e2) => e1 - e2)
 
   return {
-    count, areas, percentage, totalArea, minArea, averageArea, maxArea,
-    totalPerimeter, minPerimeter, averagePerimeter, maxPerimeter,
+    ...stats,
+    averageArea, averagePerimeter, percentage,
   }
 }
 

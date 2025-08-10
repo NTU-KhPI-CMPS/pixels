@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Typography } from '@visa/nova-react'
 import { Chart } from 'react-google-charts'
 
+import { useHistogram } from '../../../shared/hooks/useHistogram.js'
 import { resultsOpened, selectStats } from '../../../store/processingSlice.js'
 
 import Grid from '../../../shared/components/Grid.jsx'
@@ -31,10 +32,11 @@ const contourTableSchema = [
 ]
 
 const options = {
-  legend: { position: 'top' },
-  histogram: { maxNumBuckets: 10 },
-  vAxis: { scaleType: 'mirrorLog' },
   backgroundColor: '#F5F5F5',
+  legend: { position: 'top' },
+  vAxis: { scaleType: 'mirrorLog' },
+  hAxis: { gridlines: { count: 8 } },
+  bar: { groupWidth: '75%' },
 }
 
 export default function ResultsPage() {
@@ -49,26 +51,8 @@ export default function ResultsPage() {
     return Object.values(stats).map(data => data[1])
   }, [stats])
 
-  const areasHistogramData = useMemo(() => {
-    return getHistogramData(contoursData, 'areas')
-  }, [contoursData])
-
-  function getHistogramData(data, fieldName) {
-    if (!data || data.length === 0) {
-      return
-    }
-
-    const maxLength = Math.max(...data.map(image => image[fieldName].length))
-    const header = data.map(image => image.name)
-    const result = [header]
-
-    for (let i = 0; i < maxLength; i++) {
-      const row = data.map(c => c[fieldName][i] ?? null)
-      result.push(row)
-    }
-
-    return result
-  }
+  const areaHistogramData = useHistogram(contoursData, 'areas', 'minArea', 'maxArea')
+  const perimeterHistogramData = useHistogram(contoursData, 'perimeters', 'minPerimeter', 'maxPerimeter')
 
   useEffect(() => {
     const dispatchPromise = dispatch(resultsOpened())
@@ -99,10 +83,21 @@ export default function ResultsPage() {
       <Typography tag="h2" variant="headline-2">
         Contours area distribution
       </Typography>
-      {areasHistogramData && (
+      {areaHistogramData?.length && (
         <Chart
-          chartType="Histogram"
-          data={areasHistogramData}
+          chartType="ColumnChart"
+          data={areaHistogramData}
+          options={options}
+        />
+      )}
+      <br />
+      <Typography tag="h2" variant="headline-2">
+        Contours perimeter distribution
+      </Typography>
+      {perimeterHistogramData?.length && (
+        <Chart
+          chartType="ColumnChart"
+          data={perimeterHistogramData}
           options={options}
         />
       )}
