@@ -15,3 +15,7 @@
     padding-left: 0;
     padding-right: 0;
 }
+
+.google-visualization-tooltip {
+    pointer-events: none
+}

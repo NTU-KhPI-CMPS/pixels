@@ -1,13 +1,13 @@
 import { useEffect, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
-import { Accordion, AccordionHeading, AccordionPanel, AccordionToggleIcon, Utility, Typography } from '@visa/nova-react'
-import { Chart } from 'react-google-charts'
+import { Utility, Typography } from '@visa/nova-react'
 
 import { useHistogram } from '../../../shared/hooks/useHistogram.js'
 import { resultsOpened, selectStats } from '../../../store/processingSlice.js'
 
 import Grid from '../../../shared/components/Grid.jsx'
+import ChartAccordion from '../../../shared/components/ChartAccordion.jsx'
 
 const binaryTableSchema = [
   { name: 'Name', key: 'name' },
@@ -30,13 +30,6 @@ const contourTableSchema = [
   { name: 'Average Perimeter', key: 'averagePerimeter' },
   { name: 'Max Perimeter', key: 'maxPerimeter' },
 ]
-
-const options = {
-  legend: { position: 'top' },
-  vAxis: { scaleType: 'mirrorLog' },
-  hAxis: { gridlines: { count: 8 } },
-  bar: { groupWidth: '75%' },
-}
 
 export default function ResultsPage() {
 
@@ -87,45 +80,16 @@ export default function ResultsPage() {
       <Typography tag="h2" variant="headline-2">
         Distributions
       </Typography>
-      <Accordion>
-        <AccordionHeading buttonSize="large" colorScheme="secondary">
-          <AccordionToggleIcon />
-          Area and Perimeter Distribution
-        </AccordionHeading>
-        <AccordionPanel className="no-horizontal-padding">
-          <Chart
-            chartType="ColumnChart"
-            data={areaHistogramData}
-            options={{ ...options, title: 'Area Distribution' }}
-          />
-          <br />
-          <Chart
-            chartType="ColumnChart"
-            data={perimeterHistogramData}
-            options={{ ...options, title: 'Perimeter Distribution' }}
-          />
-        </AccordionPanel>
-      </Accordion>
-
-      <Accordion>
-        <AccordionHeading buttonSize="large" colorScheme="secondary">
-          <AccordionToggleIcon />
-          Aspect Ratio and Angle Distribution
-        </AccordionHeading>
-        <AccordionPanel className="no-horizontal-padding">
-          <Chart
-            chartType="ColumnChart"
-            data={ratioHistogramData}
-            options={{ ...options, title: 'Aspect Ratio Distribution' }}
-          />
-          <br />
-          <Chart
-            chartType="ColumnChart"
-            data={angleHistogramData}
-            options={{ ...options, title: 'Angle Distribution' }}
-          />
-        </AccordionPanel>
-      </Accordion>
+      <ChartAccordion
+        title="Area and Perimeter Distribution"
+        chartTitles={['Area Distribution', 'Perimeter Distribution']}
+        charts={[areaHistogramData, perimeterHistogramData]}
+      />
+      <ChartAccordion
+        title="Aspect Ratio and Angle Distribution"
+        chartTitles={['Aspect Ratio Distribution', 'Angle Distribution']}
+        charts={[ratioHistogramData, angleHistogramData]}
+      />
     </Utility>
   )
 }
