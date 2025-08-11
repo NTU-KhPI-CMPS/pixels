@@ -1,8 +1,16 @@
 async function getDb() {
-  const request = indexedDB.open('MyDatabase', 2)
+  const request = indexedDB.open('MyDatabase', 3)
 
   request.onupgradeneeded = function (event) {
     const db = event.target.result
+
+    if (db.objectStoreNames.contains('files')) {
+      db.deleteObjectStore('files')
+    }
+    if (db.objectStoreNames.contains('projects')) {
+      db.deleteObjectStore('projects')
+    }
+
     db.createObjectStore('files', { keyPath: 'id' })
     db.createObjectStore('projects', { keyPath: 'id' })
   }

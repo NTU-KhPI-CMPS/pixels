@@ -37,7 +37,7 @@ export const Navigation = () => {
           buttonSize="large"
           colorScheme="tertiary"
           aria-current={location.pathname === '/' ? 'page' : undefined}
-          element={<a href="/">Projects</a>}
+          element={<a href="/public">Projects</a>}
         />
       </Tab>
       {selectedProject && (
