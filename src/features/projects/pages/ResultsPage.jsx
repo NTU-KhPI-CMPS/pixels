@@ -31,6 +31,14 @@ const contourTableSchema = [
   { name: 'Max Perimeter', key: 'maxPerimeter' },
 ]
 
+const angleTableSchema = [
+  { name: 'Name', key: 'name' },
+  { name: 'Count', key: 'count' },
+  { name: 'Average Angle', key: 'angleAverage' },
+  { name: 'R', key: 'r' },
+  { name: 'Average Ratio', key: 'averageRatio' },
+]
+
 export default function ResultsPage() {
 
   const dispatch = useDispatch()
@@ -75,6 +83,14 @@ export default function ResultsPage() {
       <Grid
         schema={contourTableSchema}
         data={contoursData}
+      />
+
+      <Typography tag="h2" variant="headline-2">
+        Angle statistics
+      </Typography>
+      <Grid
+        schema={angleTableSchema}
+        data={angleData}
       />
 
       <Typography tag="h2" variant="headline-2">

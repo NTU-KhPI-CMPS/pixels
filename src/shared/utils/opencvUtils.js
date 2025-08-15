@@ -162,6 +162,16 @@ async function angles(contoursMat, contours) {
   stats.angles.sort((e1, e2) => e1 - e2)
   stats.ratios.sort((e1, e2) => e1 - e2)
 
+  stats.count = stats.angles.length
+
+  const xAvg = stats.x / stats.angles.length
+  const yAvg = stats.y / stats.angles.length
+  const angleAverage = Math.atan2(yAvg, xAvg) / 2
+  stats.angleAverage = 180 / Math.PI * angleAverage
+  stats.r = Math.sqrt(Math.pow(xAvg, 2) + Math.pow(yAvg, 2))
+
+  stats.averageRatio = stats.totalRatio / stats.angles.length
+
   const anglesUrls = await getUrlFromMat(anglesMat)
   return { stats, anglesMat, anglesUrls }
 }
@@ -171,10 +181,13 @@ async function processRotatedRectForStats(matToDraw, rotatedRect, stats) {
     angles: [],
     minAngle: Number.MAX_VALUE,
     maxAngle: -Number.MAX_VALUE,
+    x: 0,
+    y: 0,
 
     ratios: [],
     minRatio: Number.MAX_VALUE,
     maxRatio: -Number.MAX_VALUE,
+    totalRatio: 0,
   }
 
   const rawAngle = rotatedRect.angle
@@ -197,8 +210,12 @@ async function processRotatedRectForStats(matToDraw, rotatedRect, stats) {
 
   stats.minAngle = Math.min(stats.minAngle, angle)
   stats.maxAngle = Math.max(stats.maxAngle, angle)
+  stats.x += Math.cos((angle - 90) * 2)
+  stats.y += Math.sin((angle - 90) * 2)
+
   stats.minRatio = Math.min(stats.minRatio, ratio)
   stats.maxRatio = Math.max(stats.maxRatio, ratio)
+  stats.totalRatio += ratio
 
   return stats
 }
