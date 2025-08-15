@@ -13,6 +13,7 @@
     "@reduxjs/toolkit": "^2.8.2",
     "@visa/nova-icons-react": "^2.0.4",
     "@visa/nova-react": "^2.5.4",
+    "jszip": "^3.10.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-google-charts": "^5.2.1",

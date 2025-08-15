@@ -3,14 +3,26 @@ import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { Button, Utility } from '@visa/nova-react'
-import { GenericArrowForwardTiny, GenericCheckmarkTiny, GenericDeleteTiny } from '@visa/nova-icons-react'
+import {
+  GenericArrowForwardTiny,
+  GenericCheckmarkTiny,
+  GenericDeleteTiny,
+  GenericFileDownloadTiny,
+} from '@visa/nova-icons-react'
 
 import { defaultSettings } from '../../../config/index.js'
-import { projectActions, selectProjects, selectSelectedProject } from '../../../store/projectSlice.js'
+import {
+  downloadProject,
+  importProject,
+  projectActions,
+  selectProjects,
+  selectSelectedProject,
+} from '../../../store/projectSlice.js'
 import { deleteProjectImages } from '../../../shared/utils/indexedDBUtils.js'
 
 import Grid from '../../../shared/components/Grid.jsx'
 import NewProjectPopup from '../popups/NewProject.jsx'
+import FileInput from '../../../shared/components/FileInput.jsx'
 
 export default function ProjectPage() {
 
@@ -46,6 +58,9 @@ export default function ProjectPage() {
           onClick={() => projectSelected(row.id)}
         >
           {selectedProject?.id === row.id ? <GenericCheckmarkTiny /> : <GenericArrowForwardTiny />}
+        </Button>
+        <Button title="Export this project" onClick={() => dispatch(downloadProject(row.id))}>
+          <GenericFileDownloadTiny />
         </Button>
         <Button title="Delete this project" onClick={() => deleteProject(row.id)}>
           <GenericDeleteTiny />
@@ -84,10 +99,20 @@ export default function ProjectPage() {
   return (
     <>
       {popup && <NewProjectPopup onClose={popupClosed} />}
-      <Utility vMarginBottom={10}>
+      <Utility
+        vFlex
+        vFlexRow
+        vGap={10}
+        vMarginBottom={10}
+      >
         <Button onClick={() => setPopup(true)}>
           Create New Project
         </Button>
+        <FileInput
+          title="Import Project"
+          accept=".pixels"
+          handler={file => dispatch(importProject(file))}
+        />
       </Utility>
       <Grid
         schema={tableSchema}

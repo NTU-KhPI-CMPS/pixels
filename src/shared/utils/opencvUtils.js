@@ -238,7 +238,7 @@ async function getMatFromDb(id) {
   })
 
   URL.revokeObjectURL(imageUrl)
-  return { inputMat: cv.imread(image), name: imageData.blob.name }
+  return { inputMat: cv.imread(image), name: imageData.name }
 }
 
 async function getUrlFromMat(mat) {

@@ -72,6 +72,7 @@ export async function storeImage(file) {
     const request = store.put({
       id: id,
       blob: file,
+      name: file.name,
     })
 
     request.onsuccess = () => resolve(id)
