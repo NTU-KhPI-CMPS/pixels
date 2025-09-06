@@ -2,6 +2,15 @@ import { Table, TableWrapper, Tbody, Td, Th, Thead, Tr } from '@visa/nova-react'
 
 export default function Grid({ schema, data }) {
 
+  function formatCell(cell) {
+    if (typeof cell !== 'number') {
+      return cell
+    }
+
+    const rounded = cell.toFixed(3)
+    return rounded.replace(/0*$/, '').replace(/[.]$/, '.0')
+  }
+
   const heading = schema.map((column) => {
     return (
       <Th scope="col" key={column.name}>
@@ -14,7 +23,7 @@ export default function Grid({ schema, data }) {
     const columns = schema.map((column) => {
       return (
         <Td key={`${id}-${column.key}`}>
-          {column.mapper ? column.mapper(row) : row[column.key]}
+          {formatCell(column.mapper ? column.mapper(row) : row[column.key])}
         </Td>
       )
     })
