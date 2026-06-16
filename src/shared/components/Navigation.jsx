@@ -36,8 +36,8 @@ export const Navigation = () => {
         <Button
           buttonSize="large"
           colorScheme="tertiary"
-          aria-current={location.pathname === '/' ? 'page' : undefined}
-          element={<a href="/public">Projects</a>}
+          aria-current={location.pathname.endsWith('/') ? 'page' : undefined}
+          element={<a href="./">Projects</a>}
         />
       </Tab>
       {selectedProject && (
@@ -45,8 +45,8 @@ export const Navigation = () => {
           <Button
             buttonSize="large"
             colorScheme="tertiary"
-            aria-current={location.pathname === '/sources' ? 'page' : undefined}
-            element={<a href="/sources">Sources</a>}
+            aria-current={location.pathname.endsWith('/sources') ? 'page' : undefined}
+            element={<a href="./sources">Sources</a>}
           />
         </Tab>
       )}
@@ -56,16 +56,16 @@ export const Navigation = () => {
             <Button
               buttonSize="large"
               colorScheme="tertiary"
-              aria-current={location.pathname === '/processing' ? 'page' : undefined}
-              element={<a href="/processing">Processing</a>}
+              aria-current={location.pathname.endsWith('/processing') ? 'page' : undefined}
+              element={<a href="./processing">Processing</a>}
             />
           </Tab>
           <Tab>
             <Button
               buttonSize="large"
               colorScheme="tertiary"
-              aria-current={location.pathname === '/results' ? 'page' : undefined}
-              element={<a href="/results">Results</a>}
+              aria-current={location.pathname.endsWith('/results') ? 'page' : undefined}
+              element={<a href="./results">Results</a>}
             />
           </Tab>
         </>
