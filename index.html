@@ -8,10 +8,9 @@
     <link rel="icon" href="/logo-32x32.png" />
     <link rel="apple-touch-icon" href="/logo-180x180.png" />
 
-    <script defer src="/opencv.js"></script>
+    <script defer src="https://docs.opencv.org/4.x/opencv.js"></script>
     <script>
       window.opencvLoaded = new Promise((resolve) => {
-        // https://emscripten.org/docs/api_reference/module.html#Module.onRuntimeInitialized
         window.Module = {
           onRuntimeInitialized() {
             console.log("OpenCV Loaded!")

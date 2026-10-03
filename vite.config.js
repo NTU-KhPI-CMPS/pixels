@@ -7,9 +7,16 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
       workbox: {
-        maximumFileSizeToCacheInBytes: 12000000,
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.endsWith('.woff2') || url.pathname.endsWith('.js'),
+            handler: 'CacheFirst',
+            options: {
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
       },
       manifest: {
         name: 'Pixels',
