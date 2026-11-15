@@ -5,18 +5,18 @@ export async function getResult(id, settings) {
 
   const images = []
   const stats = []
-  const inputData = await getMatFromDb(id)
+  const inputData = await getMatFromDb(id, settings)
 
   const binaryData = await binarize(inputData.inputMat, settings)
   images.push(binaryData.binaryUrl)
   stats.push({ ...binaryData.stats, name: inputData.name })
 
-  const cannyData = await canny(binaryData.binaryMat, settings)
+  const openingData = await opening(binaryData.binaryMat, settings)
   binaryData.binaryMat.delete()
-  images.push(cannyData.cannyUrl)
+  images.push(openingData.openingUrl)
 
-  const contoursData = await contours(inputData.inputMat, cannyData.cannyMat, settings)
-  cannyData.cannyMat.delete()
+  const contoursData = await contours(inputData.inputMat, openingData.openingMat, settings)
+  openingData.openingMat.delete()
   stats.push({ ...contoursData.stats, name: inputData.name })
 
   const angleData = await angles(contoursData.contoursMat, contoursData.filteredContours)
@@ -32,12 +32,13 @@ export async function getResult(id, settings) {
   return [images, stats]
 }
 
-async function binarize(inputMat, { blockSize, c }) {
+async function binarize(inputMat, { blurSize, blockSize, c }) {
   let grayMat = new cv.Mat()
   cv.cvtColor(inputMat, grayMat, cv.COLOR_RGBA2GRAY)
+  cv.medianBlur(grayMat, grayMat, blurSize)
 
   let binaryMat = new cv.Mat()
-  cv.adaptiveThreshold(grayMat, binaryMat, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, blockSize, c)
+  cv.adaptiveThreshold(grayMat, binaryMat, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, blockSize, c)
   grayMat.delete()
 
   const stats = await getBinaryStats(binaryMat)
@@ -46,21 +47,20 @@ async function binarize(inputMat, { blockSize, c }) {
   return { stats, binaryUrl, binaryMat }
 }
 
-async function canny(binaryMat, { canny1, canny2, kernelWidth, kernelHeight }) {
-  let cannyMat = new cv.Mat()
-  cv.Canny(binaryMat, cannyMat, canny1, canny2)
+async function opening(binaryMat, { openSize }) {
+  let openingMat = new cv.Mat()
 
-  let kernel = cv.Mat.ones(kernelWidth, kernelHeight, cv.CV_8U)
-  cv.morphologyEx(cannyMat, cannyMat, cv.MORPH_CLOSE, kernel)
+  let kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(openSize, openSize))
+  cv.morphologyEx(binaryMat, openingMat, cv.MORPH_OPEN, kernel)
   kernel.delete()
 
-  const cannyUrl = await getUrlFromMat(cannyMat)
-  return { cannyUrl, cannyMat }
+  const openingUrl = await getUrlFromMat(openingMat)
+  return { openingUrl, openingMat }
 }
 
-async function contours(inputMat, edgesMat, { minArea, maxArea }) {
+async function contours(inputMat, maskMat, { minArea, maxArea }) {
   let contours = new cv.MatVector()
-  cv.findContours(edgesMat, contours, new cv.Mat(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_TC89_KCOS)
+  cv.findContours(maskMat, contours, new cv.Mat(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_TC89_KCOS)
 
   let filteredContours = new cv.MatVector()
   let stats = null
@@ -210,8 +210,8 @@ async function processRotatedRectForStats(matToDraw, rotatedRect, stats) {
 
   stats.minAngle = Math.min(stats.minAngle, angle)
   stats.maxAngle = Math.max(stats.maxAngle, angle)
-  stats.x += Math.cos((angle - 90) * 2)
-  stats.y += Math.sin((angle - 90) * 2)
+  stats.x += Math.cos((angle - 90) * 2 * Math.PI / 180)
+  stats.y += Math.sin((angle - 90) * 2 * Math.PI / 180)
 
   stats.minRatio = Math.min(stats.minRatio, ratio)
   stats.maxRatio = Math.max(stats.maxRatio, ratio)
@@ -227,7 +227,7 @@ async function drawRotatedRect(matToDraw, rotatedRect) {
   }
 }
 
-async function getMatFromDb(id) {
+async function getMatFromDb(id, { cropBottom }) {
   const imageData = await getImage(id)
   const imageUrl = URL.createObjectURL(imageData.blob)
 
@@ -238,7 +238,12 @@ async function getMatFromDb(id) {
   })
 
   URL.revokeObjectURL(imageUrl)
-  return { inputMat: cv.imread(image), name: imageData.name }
+  const fullMat = cv.imread(image)
+  const height = fullMat.rows - Math.round(fullMat.rows * cropBottom / 100)
+  const inputMat = fullMat.roi(new cv.Rect(0, 0, fullMat.cols, height)).clone()
+  fullMat.delete()
+
+  return { inputMat, name: imageData.name }
 }
 
 async function getUrlFromMat(mat) {

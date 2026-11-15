@@ -6,20 +6,24 @@ It processes images to detect, measure, and analyze surface features, allowing f
 ## Core Functionality
 The application employs an image processing pipeline to extract meaningful data from raw microscopic imagery. The analysis process involves several key stages:
 
-### 1. Adaptive Binarization
-The first step involves converting the input image into a binary format (black and white) to separate features of interest from the background.
+### 1. Cropping and Denoising
+The bottom of each image (where microscopes print their info bar) can be cropped away so it does not affect measurements.
+A **median blur** then suppresses the speckle noise typical of SEM images while keeping feature edges sharp.
+
+### 2. Adaptive Binarization
+The image is converted into a binary mask separating dark features from the brighter background.
 This is achieved using **adaptive thresholding**, which calculates the threshold for a small region around each pixel.
 This method is robust against varying lighting conditions across the image.
 
-### 2. Edge Detection
-Once binarized, the system identifies the boundaries of the features.
-It utilizes the **Canny edge detector** to find edges, followed by morphological operations (closing) to ensure the detected shapes are continuous and free of small noise.
+### 3. Mask Cleanup
+A morphological **opening** removes leftover specks and splits features that touch through thin bridges,
+so each feature ends up as a separate region.
 
-### 3. Contour Analysis
-From the detected edges, the system extracts contours. These contours represent the individual features on the metal surface.
+### 4. Contour Analysis
+From the cleaned mask, the system extracts contours. These contours represent the individual features on the metal surface.
 The system filters these contours based on their area, allowing users to focus on features within a specific size range (min/max area) and ignore irrelevant artifacts.
 
-### 4. Feature Statistics & Anisotropy
+### 5. Feature Statistics & Anisotropy
 For every valid contour, the system calculates detailed geometric statistics:
 - **Area & Perimeter:** Basic size measurements.
 - **Coverage:** The total percentage of the image surface covered by the detected features.

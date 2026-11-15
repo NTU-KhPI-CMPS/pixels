@@ -1,6 +1,15 @@
 import { useDispatch, useSelector } from 'react-redux'
 
-import { Accordion, AccordionHeading, AccordionPanel, AccordionToggleIcon, Button, Utility } from '@visa/nova-react'
+import {
+  Accordion,
+  AccordionHeading,
+  AccordionPanel,
+  AccordionToggleIcon,
+  Button,
+  Divider,
+  Typography,
+  Utility,
+} from '@visa/nova-react'
 
 import { projectActions, selectSelectedProject } from '../../../store/projectSlice.js'
 
@@ -33,13 +42,42 @@ export default function ProcessingSettings() {
       <AccordionPanel>
         <form onSubmit={onSubmit}>
           <Utility vFlex vFlexCol vGap={10}>
-            <Utility className="flex-container">
+            <Stage
+              title="1. Preprocessing"
+              description="Prepares the image: removes the microscope info bar and smooths out fine noise."
+            >
+              <NumberInput
+                title="Crop Bottom (%)"
+                name="cropBottom"
+                max={50}
+                description="Part of the image height cut from the bottom, e.g. an SEM info bar."
+                initialValue={settings.cropBottom}
+              />
+              <NumberInput
+                title="Median Blur Size"
+                name="blurSize"
+                min={1}
+                max={31}
+                step={2}
+                oddOnly
+                description="Larger removes more speckle but softens small features. 1 turns it off."
+                initialValue={settings.blurSize}
+              />
+            </Stage>
+
+            <Divider />
+
+            <Stage
+              title="2. Binarization"
+              description="Marks pixels that are darker than their surroundings as features."
+            >
               <NumberInput
                 title="Threshold Block Size"
                 name="blockSize"
                 min={1}
                 max={255}
                 step={2}
+                description="Size of the area each pixel is compared with. Should be larger than the features."
                 initialValue={settings.blockSize}
               />
               <NumberInput
@@ -47,46 +85,46 @@ export default function ProcessingSettings() {
                 name="c"
                 min={1}
                 max={255}
+                description="How much darker than its surroundings a pixel must be. Higher finds fewer, darker features."
                 initialValue={settings.c}
               />
-            </Utility>
+            </Stage>
 
-            <Utility className="flex-container">
+            <Divider />
+
+            <Stage
+              title="3. Cleanup"
+              description="Removes small specks and separates features that touch through thin bridges."
+            >
               <NumberInput
-                title="Canny Threshold 1"
-                name="canny1"
+                title="Opening Kernel Size"
+                name="openSize"
                 min={1}
-                max={255}
-                initialValue={settings.canny1}
+                max={51}
+                description="Larger removes bigger specks and splits more features. 1 turns it off."
+                initialValue={settings.openSize}
               />
-              <NumberInput
-                title="Canny Threshold 2"
-                name="canny2"
-                min={1}
-                max={255}
-                initialValue={settings.canny2}
-              />
-            </Utility>
+            </Stage>
 
-            <Utility className="flex-container">
-              <NumberInput
-                title="Closing Kernel Width"
-                name="kernelWidth"
-                max={255}
-                initialValue={settings.kernelWidth}
-              />
-              <NumberInput
-                title="Closing Kernel Height"
-                name="kernelHeight"
-                max={255}
-                initialValue={settings.kernelHeight}
-              />
-            </Utility>
+            <Divider />
 
-            <Utility className="flex-container">
-              <NumberInput title="Minimum Area" name="minArea" initialValue={settings.minArea} />
-              <NumberInput title="Maximum Area" name="maxArea" initialValue={settings.maxArea} />
-            </Utility>
+            <Stage
+              title="4. Feature Filtering"
+              description="Keeps only features whose area is within the range. Area is measured in pixels."
+            >
+              <NumberInput
+                title="Minimum Area"
+                name="minArea"
+                description="Smaller features are ignored as noise."
+                initialValue={settings.minArea}
+              />
+              <NumberInput
+                title="Maximum Area"
+                name="maxArea"
+                description="Larger regions are ignored."
+                initialValue={settings.maxArea}
+              />
+            </Stage>
           </Utility>
 
           <Utility vFlex vJustifyContent="end" vMarginTop={10}>
@@ -97,5 +135,21 @@ export default function ProcessingSettings() {
         </form>
       </AccordionPanel>
     </Accordion>
+  )
+}
+
+function Stage({ title, description, children }) {
+  return (
+    <Utility vFlex vFlexCol vGap={6}>
+      <Typography tag="h3" variant="subtitle-2">
+        {title}
+      </Typography>
+      <Typography variant="body-3">
+        {description}
+      </Typography>
+      <Utility className="flex-container">
+        {children}
+      </Utility>
+    </Utility>
   )
 }

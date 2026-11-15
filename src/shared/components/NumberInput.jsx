@@ -9,6 +9,7 @@ export default function NumberInput(
     max = 1_000_000,
     step = 1,
     initialValue = min,
+    description,
     ...other
   }) {
 
@@ -57,7 +58,7 @@ export default function NumberInput(
       </InputContainer>
 
       <InputMessage id={`${id}-message`}>
-        {`${min} - ${max}`}
+        {description ? `${description} (${min} - ${max})` : `${min} - ${max}`}
       </InputMessage>
     </div>
   )
