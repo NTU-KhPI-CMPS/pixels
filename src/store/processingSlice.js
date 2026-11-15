@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 
-import { getResult } from '../shared/utils/opencvUtils.js'
+import { processImage } from '../shared/utils/workerPool.js'
 import { revokeResults } from '../shared/utils/urlUtils.js'
 
 export const resultsOpened = createAsyncThunk(
@@ -12,18 +12,26 @@ export const resultsOpened = createAsyncThunk(
     const files = selectedProject.files
     const settings = selectedProject.settings
 
-    const resultData = {}
-    const statsData = {}
-    for (const file of files) {
+    const processingResults = await Promise.all(
+      files.map(file => processImage(file, settings, thunkAPI.signal)),
+    ).catch((error) => {
       if (thunkAPI.signal.aborted) {
-        revokeResults(resultData)
         throw thunkAPI.rejectWithValue({})
       }
+      throw error
+    })
 
-      const processingResult = await getResult(file, settings)
-      resultData[file] = processingResult[0]
-      statsData[file] = processingResult[1]
+    if (thunkAPI.signal.aborted) {
+      throw thunkAPI.rejectWithValue({})
     }
+
+    const resultData = {}
+    const statsData = {}
+    files.forEach((file, index) => {
+      const [imageBlobs, stats] = processingResults[index]
+      resultData[file] = imageBlobs.map(blob => URL.createObjectURL(blob))
+      statsData[file] = stats
+    })
 
     return [resultData, statsData]
   },

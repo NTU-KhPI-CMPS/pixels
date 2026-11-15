@@ -4,13 +4,17 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   base: '/pixels/',
+  worker: {
+    format: 'es',
+  },
   plugins: [
     react(),
     VitePWA({
       workbox: {
+        maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.pathname.endsWith('.woff2') || url.pathname.endsWith('.js'),
+            urlPattern: ({ url }) => url.pathname.endsWith('.woff2'),
             handler: 'CacheFirst',
             options: {
               cacheableResponse: { statuses: [0, 200] },

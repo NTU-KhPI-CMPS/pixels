@@ -7,18 +7,6 @@
     <title>Pixels</title>
     <link rel="icon" href="/logo-32x32.png" />
     <link rel="apple-touch-icon" href="/logo-180x180.png" />
-
-    <script defer src="https://docs.opencv.org/4.x/opencv.js"></script>
-    <script>
-      window.opencvLoaded = new Promise((resolve) => {
-        window.Module = {
-          onRuntimeInitialized() {
-            console.log("OpenCV Loaded!")
-            resolve()
-          }
-        }
-      })
-    </script>
   </head>
   <body>
     <div id="root"></div>

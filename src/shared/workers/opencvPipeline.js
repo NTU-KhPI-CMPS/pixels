@@ -1,19 +1,17 @@
-import { getImage } from './indexedDBUtils.js'
+import { getImage } from '../utils/indexedDBUtils.js'
 
 export async function getResult(id, settings) {
-  await window.opencvLoaded
-
   const images = []
   const stats = []
   const inputData = await getMatFromDb(id, settings)
 
   const binaryData = await binarize(inputData.inputMat, settings)
-  images.push(binaryData.binaryUrl)
+  images.push(binaryData.binaryBlob)
   stats.push({ ...binaryData.stats, name: inputData.name })
 
   const openingData = await opening(binaryData.binaryMat, settings)
   binaryData.binaryMat.delete()
-  images.push(openingData.openingUrl)
+  images.push(openingData.openingBlob)
 
   const contoursData = await contours(inputData.inputMat, openingData.openingMat, settings)
   openingData.openingMat.delete()
@@ -24,7 +22,7 @@ export async function getResult(id, settings) {
   contoursData.filteredContours.delete()
 
   stats.push({ ...angleData.stats, name: inputData.name })
-  images.push(angleData.anglesUrls)
+  images.push(angleData.anglesBlob)
 
   angleData.anglesMat.delete()
   inputData.inputMat.delete()
@@ -42,9 +40,9 @@ async function binarize(inputMat, { blurSize, blockSize, c }) {
   grayMat.delete()
 
   const stats = await getBinaryStats(binaryMat)
-  const binaryUrl = await getUrlFromMat(binaryMat)
+  const binaryBlob = await getBlobFromMat(binaryMat)
 
-  return { stats, binaryUrl, binaryMat }
+  return { stats, binaryBlob, binaryMat }
 }
 
 async function opening(binaryMat, { openSize }) {
@@ -54,8 +52,8 @@ async function opening(binaryMat, { openSize }) {
   cv.morphologyEx(binaryMat, openingMat, cv.MORPH_OPEN, kernel)
   kernel.delete()
 
-  const openingUrl = await getUrlFromMat(openingMat)
-  return { openingUrl, openingMat }
+  const openingBlob = await getBlobFromMat(openingMat)
+  return { openingBlob, openingMat }
 }
 
 async function contours(inputMat, maskMat, { minArea, maxArea }) {
@@ -172,8 +170,8 @@ async function angles(contoursMat, contours) {
 
   stats.averageRatio = stats.totalRatio / stats.angles.length
 
-  const anglesUrls = await getUrlFromMat(anglesMat)
-  return { stats, anglesMat, anglesUrls }
+  const anglesBlob = await getBlobFromMat(anglesMat)
+  return { stats, anglesBlob, anglesMat }
 }
 
 async function processRotatedRectForStats(matToDraw, rotatedRect, stats) {
@@ -229,16 +227,14 @@ async function drawRotatedRect(matToDraw, rotatedRect) {
 
 async function getMatFromDb(id, { cropBottom }) {
   const imageData = await getImage(id)
-  const imageUrl = URL.createObjectURL(imageData.blob)
 
-  const image = new Image()
-  await new Promise((resolve) => {
-    image.onload = resolve
-    image.src = imageUrl
-  })
+  const bitmap = await createImageBitmap(imageData.blob)
+  const canvas = new OffscreenCanvas(bitmap.width, bitmap.height)
+  const context = canvas.getContext('2d')
+  context.drawImage(bitmap, 0, 0)
+  bitmap.close()
 
-  URL.revokeObjectURL(imageUrl)
-  const fullMat = cv.imread(image)
+  const fullMat = cv.matFromImageData(context.getImageData(0, 0, canvas.width, canvas.height))
   const height = fullMat.rows - Math.round(fullMat.rows * cropBottom / 100)
   const inputMat = fullMat.roi(new cv.Rect(0, 0, fullMat.cols, height)).clone()
   fullMat.delete()
@@ -246,11 +242,21 @@ async function getMatFromDb(id, { cropBottom }) {
   return { inputMat, name: imageData.name }
 }
 
-async function getUrlFromMat(mat) {
-  const canvas = document.createElement('canvas')
-  cv.imshow(canvas, mat)
+async function getBlobFromMat(mat) {
+  const rgbaMat = new cv.Mat()
+  if (mat.channels() === 1) {
+    cv.cvtColor(mat, rgbaMat, cv.COLOR_GRAY2RGBA)
+  } else if (mat.channels() === 3) {
+    cv.cvtColor(mat, rgbaMat, cv.COLOR_RGB2RGBA)
+  } else {
+    mat.copyTo(rgbaMat)
+  }
 
-  const blob = await new Promise(resolve => canvas.toBlob(resolve))
+  const imageData = new ImageData(new Uint8ClampedArray(rgbaMat.data), rgbaMat.cols, rgbaMat.rows)
+  rgbaMat.delete()
 
-  return URL.createObjectURL(blob)
+  const canvas = new OffscreenCanvas(imageData.width, imageData.height)
+  canvas.getContext('2d').putImageData(imageData, 0, 0)
+
+  return await canvas.convertToBlob()
 }
