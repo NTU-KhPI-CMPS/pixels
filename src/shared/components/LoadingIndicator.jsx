@@ -1,6 +1,6 @@
 import { Fragment } from 'react'
 
-import SyncLoader from 'react-spinners/SyncLoader'
+import { ProgressCircular } from '@visa/nova-react'
 
 import styles from '../../styles/shared/LoadingIndicator.module.css'
 
@@ -8,7 +8,7 @@ export default function LoadingIndicator({ loading = true, children = null }) {
 
   const loader = (
     <div className={styles.overlay}>
-      <SyncLoader color="#FFFFFF" />
+      <ProgressCircular indeterminate aria-label="Loading" />
     </div>
   )
 

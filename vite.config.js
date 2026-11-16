@@ -14,7 +14,7 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.pathname.endsWith('.woff2'),
+            urlPattern: ({ url }) => url.pathname.endsWith('.woff2') || url.pathname.endsWith('.js'),
             handler: 'CacheFirst',
             options: {
               cacheableResponse: { statuses: [0, 200] },
